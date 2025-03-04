@@ -51,7 +51,7 @@ public class ArmIOREV implements ArmIO {
   private final SparkClosedLoopController closedLoopController = leader.getClosedLoopController();
   private final ArmFeedforward feedforward = new ArmFeedforward(0, 0.2, 0);
 
-  private Angle setPoint = Rotations.of(0);
+  private Angle setPoint = Radians.of(0);
   /**
    * Constructs a new ArmIOREV instance.
    *
@@ -134,7 +134,7 @@ public class ArmIOREV implements ArmIO {
    */
   @Override
   public void setPosition(Angle angle) {
-    double ff = feedforward.calculate(angle.in(Radians), 0.0);
+    double ff = feedforward.calculate(angle.in(Rotations), 0.0);
     // The setpoint is in rotations.
     closedLoopController.setReference(
         angle.in(Rotations), ControlType.kPosition, ClosedLoopSlot.kSlot0, ff);

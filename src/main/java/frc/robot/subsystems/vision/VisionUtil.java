@@ -6,8 +6,7 @@
 
 package frc.robot.subsystems.vision;
 
-import static edu.wpi.first.units.Units.DegreesPerSecond;
-import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.*;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
@@ -89,6 +88,50 @@ public class VisionUtil {
        */
       private double calculateStdDev(PoseEstimate mt, double scaler) {
         return scaler * Math.pow(mt.avgTagDist(), 2.0) / mt.tagCount();
+      }
+    },
+    /**
+     * Standard vision mode that calculates measurement uncertainties based on distance. Uses a
+     * simple model where standard deviations increase quadratically with distance and decrease
+     * linearly with the number of tags detected.
+     */
+    GRAY_MATTER {
+      @Override
+      public VisionMeasurement getVisionMeasurement(PoseEstimate mt) {
+        double xyStdDev = calculateStdDev(mt, MA_VISION_STD_DEV_XY);
+        xyStdDev = mt.isMegaTag2() ? xyStdDev : xyStdDev * 2;
+        // MT2 measurements don't provide reliable rotation data
+        double thetaStdDev =
+            mt.isMegaTag2() ? Double.MAX_VALUE : calculateStdDev(mt, MA_VISION_STD_DEV_THETA);
+        return new VisionMeasurement(mt, VecBuilder.fill(xyStdDev, xyStdDev, thetaStdDev));
+      }
+
+      /**
+       * Calculates the standard deviation for X and Y measurements.
+       *
+       * @param mt The pose estimate containing tag detection information
+       * @param scaler Amount to scale trust by. Smaller is greater trust
+       * @return Standard deviation scaled by distance squared and tag count
+       */
+      private double calculateStdDev(PoseEstimate mt, double scaler) {
+        return scaler * Math.pow(mt.avgTagDist(), 2.0) / mt.tagCount();
+      }
+
+      private boolean invalidMT1(PoseEstimate mt) {
+        return !mt.isMegaTag2() && mt.tagCount() == 1;
+      }
+
+      @Override
+      public boolean acceptVisionMeasurement(PoseObservation mt) {
+        if (!mt.isValid()) {
+          return false;
+        }
+        PoseEstimate poseEst = mt.poseEstimate();
+        return !invalidPose(poseEst.pose())
+            && !invalidRotationVelocity(poseEst)
+            && !invalidAmbiguity(poseEst)
+            && !invalidTagArea(poseEst)
+            && !invalidMT1(poseEst);
       }
     },
 
