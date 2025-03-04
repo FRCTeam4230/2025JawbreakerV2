@@ -107,13 +107,13 @@ public class ArmIOREV implements ArmIO {
 
     // Currents are read from the SparkMax.
     inputs.leaderStatorCurrent = Amps.of(leader.getOutputCurrent());
-    // inputs.followerStatorCurrent = Amps.of(follower.getOutputCurrent());
+
     // For demonstration, assume the supply current is similar.
     inputs.leaderSupplyCurrent = Amps.of(leader.getOutputCurrent());
-    // inputs.followerSupplyCurrent = Amps.of(follower.getOutputCurrent());
 
-    // Use the integrated encoder measurement as the arm’s current angle.
-    inputs.armAngle = Rotations.of(armRot);
+
+    // Use the absolute encoder measurement as the arm’s current angle.
+    inputs.armAngle = inputs.encoderPosition;
     inputs.setPoint = setPoint;
 
     inputs.lowerLimit = leader.getForwardLimitSwitch().isPressed();
