@@ -14,10 +14,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmIO;
-import frc.robot.subsystems.arm.ArmIOCTRE;
-import frc.robot.subsystems.arm.ArmIOSIM;
+import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveIO;
 import frc.robot.subsystems.drive.DriveIOCTRE;
@@ -26,9 +23,6 @@ import frc.robot.subsystems.drive.requests.SwerveSetpointGen;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIO;
 import frc.robot.subsystems.elevator.ElevatorIOSIM;
-import frc.robot.subsystems.flywheel.Flywheel;
-import frc.robot.subsystems.flywheel.FlywheelIO;
-import frc.robot.subsystems.flywheel.FlywheelIOSIM;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -51,7 +45,6 @@ public class RobotContainer {
           .withDeadband(MaxSpeed.times(0.1))
           .withRotationalDeadband(Constants.MaxAngularRate.times(0.1)) // Add a 10% deadband
           .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-  private final Flywheel flywheel;
   private final Elevator elevator;
   private final Arm arm;
 
@@ -70,18 +63,14 @@ public class RobotContainer {
             drivetrain::addVisionData,
             new VisionIOLimelight("limelight-fl", drivetrain::getVisionParameters),
             new VisionIOLimelight("limelight-fr", drivetrain::getVisionParameters),
-            new VisionIOLimelight("limelight-bl", drivetrain::getVisionParameters),
-            new VisionIOLimelight("limelight-br", drivetrain::getVisionParameters));
+            new VisionIOLimelight("limelight-back", drivetrain::getVisionParameters));
 
-        // flywheel = new Flywheel(new FlywheelIOCTRE()); // Disabled to prevent robot movement if
-        // deployed to a real robot
-        flywheel = new Flywheel(new FlywheelIO() {});
         // elevator = new Elevator(new ElevatorIOCTRE()); // Disabled to prevent robot movement if
         // deployed to a real robot
         elevator = new Elevator(new ElevatorIO() {});
         // arm = new Arm(new ArmIOCTRE()); // Disabled to prevent robot movement if deployed to a
         // real robot
-        arm = new Arm(new ArmIO() {});
+        arm = new Arm(new ArmIOREV() {});
         break;
 
       case SIM:
@@ -115,9 +104,8 @@ public class RobotContainer {
                     new Rotation3d(0, Math.toRadians(20), Math.toRadians(-90))),
                 drivetrain::getVisionParameters));
 
-        flywheel = new Flywheel(new FlywheelIOSIM());
         elevator = new Elevator(new ElevatorIOSIM());
-        arm = new Arm(new ArmIOSIM());
+        arm = new Arm(new ArmIOREVSIM());
         break;
 
       default:
@@ -131,7 +119,6 @@ public class RobotContainer {
             new VisionIO() {},
             new VisionIO() {});
 
-        flywheel = new Flywheel(new FlywheelIO() {});
         elevator = new Elevator(new ElevatorIO() {});
         arm = new Arm(new ArmIOCTRE() {});
         break;
@@ -244,10 +231,10 @@ public class RobotContainer {
     joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
     joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
+    joystick.a().onTrue(arm.L4());
+
     // reset the field-centric heading on left bumper press
     // joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
-    joystick.a().onTrue(flywheel.L1()).onTrue(arm.L1()).onTrue(elevator.L1());
-    joystick.b().onTrue(flywheel.L2()).onTrue(arm.L2()).onTrue(elevator.L2());
   }
 
   public Command getAutonomousCommand() {

@@ -23,6 +23,8 @@ public interface ArmIO {
     public boolean leaderConnected = false;
     public boolean followerConnected = false;
     public boolean encoderConnected = false;
+    public boolean lowerLimit = false;
+    public boolean upperLimit = false;
 
     public Angle leaderPosition = Rotations.of(0);
     public Angle leaderRotorPosition = Rotations.of(0);
@@ -39,6 +41,7 @@ public interface ArmIO {
     public Current followerSupplyCurrent = Amps.of(0);
 
     public Angle armAngle = Rotations.of(0);
+    public Angle setPoint = Rotations.of(0);
   }
 
   /** Updates the set of loggable inputs. */
@@ -49,4 +52,8 @@ public interface ArmIO {
 
   /** Stop in open loop. */
   public default void stop() {}
+
+  public default void reconfigurePID() {}
+
+  public default void setVoltage(Voltage voltage) {}
 }
