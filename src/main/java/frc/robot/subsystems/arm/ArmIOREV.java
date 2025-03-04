@@ -72,7 +72,7 @@ public class ArmIOREV implements ArmIO {
         .voltageCompensation(12.0)
         .smartCurrentLimit(40)
         .closedLoop
-        .outputRange(-1, 1)
+        .outputRange(-.99, .99)
         .feedbackSensor(FeedbackSensor.kAlternateOrExternalEncoder)
         .p(ArmConstants.kP.get())
         .i(ArmConstants.kI.get())
@@ -111,7 +111,6 @@ public class ArmIOREV implements ArmIO {
     // For demonstration, assume the supply current is similar.
     inputs.leaderSupplyCurrent = Amps.of(leader.getOutputCurrent());
 
-
     // Use the absolute encoder measurement as the arm’s current angle.
     inputs.armAngle = inputs.encoderPosition;
     inputs.setPoint = setPoint;
@@ -135,7 +134,7 @@ public class ArmIOREV implements ArmIO {
    */
   @Override
   public void setPosition(Angle angle) {
-    double ff = feedforward.calculate(angle.in(Radians), 1);
+    double ff = feedforward.calculate(angle.in(Radians), 0.0);
     // The setpoint is in rotations.
     closedLoopController.setReference(
         angle.in(Rotations), ControlType.kPosition, ClosedLoopSlot.kSlot0, ff);

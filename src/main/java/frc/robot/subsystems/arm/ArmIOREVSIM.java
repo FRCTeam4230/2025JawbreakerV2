@@ -9,6 +9,7 @@ package frc.robot.subsystems.arm;
 import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.arm.ArmConstants.*;
 
+import com.revrobotics.sim.SparkAbsoluteEncoderSim;
 import com.revrobotics.sim.SparkFlexSim;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
@@ -36,6 +37,8 @@ public class ArmIOREVSIM extends ArmIOREV {
   /** Simulation state for the leader motor */
   private final SparkFlexSim leaderSim;
 
+  private final SparkAbsoluteEncoderSim absoluteEncoderSim;
+
   /** Constructs a new ArmIOREVSIM instance. */
   public ArmIOREVSIM() {
     super(); // Initialize REV hardware interface components
@@ -45,6 +48,7 @@ public class ArmIOREVSIM extends ArmIOREV {
 
     // Retrieve simulation state objects from the REV devices.
     leaderSim = new SparkFlexSim(leader, motor);
+    absoluteEncoderSim = leaderSim.getAbsoluteEncoderSim();
 
     // Define arm physical properties.
     Distance armLength = Inches.of(23.75);
@@ -95,5 +99,6 @@ public class ArmIOREVSIM extends ArmIOREV {
 
     // Update the simulated motor encoder readings (raw sensor values).
     leaderSim.iterate(simulatedMotorRPM, RobotController.getBatteryVoltage(), 0.02);
+    absoluteEncoderSim.iterate(simulatedMotorRPM, 0.02);
   }
 }
