@@ -50,7 +50,8 @@ public class ArmIOREV implements ArmIO {
   public final RelativeEncoder relativeEncoder = leader.getExternalEncoder();
 
   private final SparkClosedLoopController closedLoopController = leader.getClosedLoopController();
-  private final ArmFeedforward feedforward = new ArmFeedforward(0, 1.70, 0.34);
+  private final ArmFeedforward feedforward =
+      new ArmFeedforward(ArmConstants.kS.get(), ArmConstants.kG.get(), ArmConstants.kV.get());
 
   private Angle setPoint = Rotations.of(0);
   /**
