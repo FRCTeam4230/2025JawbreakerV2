@@ -12,7 +12,7 @@ public class ArmConstants {
   private static final TunableNumberWrapper tunableTable =
       new TunableNumberWrapper(MethodHandles.lookup().lookupClass());
   // public static final LoggedTunableNumber kP = tunableTable.makeField("kP", 5);
-  public static final LoggedTunableNumber kP = tunableTable.makeField("kP", 0.185);
+  public static final LoggedTunableNumber kP = tunableTable.makeField("kP", 4.0);
   public static final LoggedTunableNumber kI = tunableTable.makeField("kI", 0.0);
   public static final LoggedTunableNumber kD = tunableTable.makeField("kD", 0.02);
   public static final LoggedTunableNumber setpointToleranceRad =
