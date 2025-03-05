@@ -50,7 +50,7 @@ public class ArmIOREV implements ArmIO {
   public final RelativeEncoder relativeEncoder = leader.getExternalEncoder();
 
   private final SparkClosedLoopController closedLoopController = leader.getClosedLoopController();
-  private final ArmFeedforward feedforward = new ArmFeedforward(0, 0, 0);
+  private final ArmFeedforward feedforward = new ArmFeedforward(0, 1.70, 0.34);
 
   private Angle setPoint = Rotations.of(0);
   /**
@@ -134,16 +134,17 @@ public class ArmIOREV implements ArmIO {
    */
   @Override
   public void setPosition(Angle angle) {
+    this.setPoint = Rotations.of(angle.in(Rotations));
+
     Logger.recordOutput("Arm/in_degrees", angle.in(Degrees));
     Logger.recordOutput("Arm/in_radians", angle.in(Radians));
     Logger.recordOutput("Arm/in_rotations", angle.in(Rotations));
 
     double ff = feedforward.calculate(angle.in(Radians), 0.0);
+
     // The setpoint is in rotations.
     closedLoopController.setReference(
         angle.in(Rotations), ControlType.kPosition, ClosedLoopSlot.kSlot0, ff);
-
-    this.setPoint = Rotations.of(angle.in(Rotations));
   }
 
   /** Stops all arm movement. */
