@@ -75,6 +75,7 @@ public class ArmIOREVSIM extends ArmIOREV {
             Degrees.of(180).in(Rotations),
             true,
             startingAngle.in(Rotations));
+
     leaderSim.setPosition(startingAngle.in(Rotations));
   }
 

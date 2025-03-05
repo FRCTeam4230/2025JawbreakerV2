@@ -8,7 +8,7 @@ package frc.robot.subsystems.arm;
 
 import static edu.wpi.first.units.Units.*;
 
-import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -24,6 +24,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotController;
+import org.littletonrobotics.junction.Logger;
 
 /**
  * REV-based implementation of the ArmIO interface. This class uses two SparkFlex motor controllers
@@ -46,12 +47,12 @@ public class ArmIOREV implements ArmIO {
    * The SparkMax’s built–in relative encoder is used to determine the leader’s position. (An
    * absolute encoder could be used if available.)
    */
-  public final AbsoluteEncoder absoluteEncoder = leader.getAbsoluteEncoder();
+  public final RelativeEncoder relativeEncoder = leader.getExternalEncoder();
 
   private final SparkClosedLoopController closedLoopController = leader.getClosedLoopController();
-  private final ArmFeedforward feedforward = new ArmFeedforward(0, 0.2, 0);
+  private final ArmFeedforward feedforward = new ArmFeedforward(0, 5, 0);
 
-  private Angle setPoint = Radians.of(0);
+  private Angle setPoint = Rotations.of(0);
   /**
    * Constructs a new ArmIOREV instance.
    *
@@ -63,9 +64,8 @@ public class ArmIOREV implements ArmIO {
     SparkFlexConfig leaderConfig = new SparkFlexConfig();
     leaderConfig.limitSwitch.forwardLimitSwitchEnabled(false).reverseLimitSwitchEnabled(false);
 
-    leaderConfig.absoluteEncoder.inverted(true);
-    leaderConfig.externalEncoder.countsPerRevolution(8192);
-    leaderConfig.externalEncoder.inverted(true);
+    leaderConfig.externalEncoder.countsPerRevolution(8192).inverted(true);
+
     leaderConfig
         .inverted(true)
         .idleMode(SparkBaseConfig.IdleMode.kBrake)
@@ -94,8 +94,8 @@ public class ArmIOREV implements ArmIO {
 
     // Get the arm’s current position (in rotations) and angular velocity (rotations per second)
     // from the integrated encoder.
-    double armRot = absoluteEncoder.getPosition();
-    double armVelRotPerSec = absoluteEncoder.getVelocity();
+    double armRot = relativeEncoder.getPosition();
+    double armVelRotPerSec = relativeEncoder.getVelocity();
 
     inputs.encoderPosition = Rotations.of(armRot);
     // For the motor’s rotor position we reconstruct the raw (pre–conversion) value.
@@ -134,7 +134,11 @@ public class ArmIOREV implements ArmIO {
    */
   @Override
   public void setPosition(Angle angle) {
-    double ff = feedforward.calculate(angle.in(Rotations), 0.0);
+    Logger.recordOutput("Arm/in_degrees", angle.in(Degrees));
+    Logger.recordOutput("Arm/in_radians", angle.in(Radians));
+    Logger.recordOutput("Arm/in_rotations", angle.in(Rotations));
+
+    double ff = feedforward.calculate(angle.in(Radians), 0.0);
     // The setpoint is in rotations.
     closedLoopController.setReference(
         angle.in(Rotations), ControlType.kPosition, ClosedLoopSlot.kSlot0, ff);
