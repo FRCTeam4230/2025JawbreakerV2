@@ -52,7 +52,7 @@ public class ArmIOREVSIM extends ArmIOREV {
 
     // Define arm physical properties.
     Distance armLength = Inches.of(23.75);
-    Mass armMass = Pounds.of(4.84);
+    Mass armMass = Pounds.of(4.84).plus(Pounds.of(1).plus(Pounds.of(3 / 16)));
 
     // Calculate the arm's moment of inertia (MOI) using WPILib's helper.
     double armMOI = SingleJointedArmSim.estimateMOI(armLength.in(Meters), armMass.in(Kilograms));
@@ -73,7 +73,7 @@ public class ArmIOREVSIM extends ArmIOREV {
             armLength.in(Meters),
             Degrees.of(0).in(Rotations),
             Degrees.of(180).in(Rotations),
-            true,
+            false,
             startingAngle.in(Rotations));
 
     leaderSim.setPosition(startingAngle.in(Rotations));
