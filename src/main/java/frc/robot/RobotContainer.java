@@ -74,32 +74,32 @@ public class RobotContainer {
         // Sim robot, instantiate physics sim IO implementations
         drivetrain = new Drive(currentDriveTrain);
 
-        new Vision(
-            drivetrain::addVisionData,
-            new VisionIOPhotonVisionSIM(
-                "Front Camera",
-                new Transform3d(
-                    new Translation3d(0.2, 0.0, 0.8),
-                    new Rotation3d(0, Math.toRadians(20), Math.toRadians(0))),
-                drivetrain::getVisionParameters),
-            new VisionIOPhotonVisionSIM(
-                "Back Camera",
-                new Transform3d(
-                    new Translation3d(-0.2, 0.0, 0.8),
-                    new Rotation3d(0, Math.toRadians(20), Math.toRadians(180))),
-                drivetrain::getVisionParameters),
-            new VisionIOPhotonVisionSIM(
-                "Left Camera",
-                new Transform3d(
-                    new Translation3d(0.0, 0.2, 0.8),
-                    new Rotation3d(0, Math.toRadians(20), Math.toRadians(90))),
-                drivetrain::getVisionParameters),
-            new VisionIOPhotonVisionSIM(
-                "Right Camera",
-                new Transform3d(
-                    new Translation3d(0.0, -0.2, 0.8),
-                    new Rotation3d(0, Math.toRadians(20), Math.toRadians(-90))),
-                drivetrain::getVisionParameters));
+//        new Vision(
+//            drivetrain::addVisionData,
+//            new VisionIOPhotonVisionSIM(
+//                "Front Camera",
+//                new Transform3d(
+//                    new Translation3d(0.2, 0.0, 0.8),
+//                    new Rotation3d(0, Math.toRadians(20), Math.toRadians(0))),
+//                drivetrain::getVisionParameters),
+//            new VisionIOPhotonVisionSIM(
+//                "Back Camera",
+//                new Transform3d(
+//                    new Translation3d(-0.2, 0.0, 0.8),
+//                    new Rotation3d(0, Math.toRadians(20), Math.toRadians(180))),
+//                drivetrain::getVisionParameters),
+//            new VisionIOPhotonVisionSIM(
+//                "Left Camera",
+//                new Transform3d(
+//                    new Translation3d(0.0, 0.2, 0.8),
+//                    new Rotation3d(0, Math.toRadians(20), Math.toRadians(90))),
+//                drivetrain::getVisionParameters),
+//            new VisionIOPhotonVisionSIM(
+//                "Right Camera",
+//                new Transform3d(
+//                    new Translation3d(0.0, -0.2, 0.8),
+//                    new Rotation3d(0, Math.toRadians(20), Math.toRadians(-90))),
+//                drivetrain::getVisionParameters));
 
         elevator = new Elevator(new ElevatorIOSIMREV());
         arm = new Arm(new ArmIOREVSIM());
