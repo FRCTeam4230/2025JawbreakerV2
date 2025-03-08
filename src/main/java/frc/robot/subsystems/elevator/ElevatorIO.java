@@ -25,6 +25,9 @@ public interface ElevatorIO {
     public boolean leaderConnected = false;
     public boolean followerConnected = false;
     public boolean encoderConnected = false;
+    public boolean lowerLimit = false;
+    public boolean upperLimit = false;
+    public boolean beamBreakTriggered = false;
 
     public Angle leaderPosition = Rotations.of(0);
     public Angle leaderRotorPosition = Rotations.of(0);
@@ -41,6 +44,8 @@ public interface ElevatorIO {
     public Current followerSupplyCurrent = Amps.of(0);
 
     public Distance elevatorDistance = Inches.of(0);
+    public Angle dutyCycleEncoderPosition = Rotations.of(0);
+    public Distance setpoint = Inches.of(0);
   }
 
   /** Updates the set of loggable inputs. */
