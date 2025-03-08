@@ -71,7 +71,7 @@ public class ArmIOREV implements ArmIO {
         .inverted(true)
         .idleMode(SparkBaseConfig.IdleMode.kBrake)
         .voltageCompensation(12.0)
-        .smartCurrentLimit(40)
+        .smartCurrentLimit(60)
         .closedLoop
         .outputRange(-.99, .99)
         .feedbackSensor(FeedbackSensor.kAlternateOrExternalEncoder)
@@ -95,7 +95,8 @@ public class ArmIOREV implements ArmIO {
 
     // Get the arm’s current position (in rotations) and angular velocity (rotations per second)
     // from the integrated encoder.
-    double armRot = relativeEncoder.getPosition();
+    double armRot =
+        relativeEncoder.getPosition(); // + ArmConstants.ARM_ENCODER_OFFSET_RAD.magnitude();
     double armVelRotPerSec = relativeEncoder.getVelocity();
 
     inputs.encoderPosition = Rotations.of(armRot);
@@ -136,12 +137,12 @@ public class ArmIOREV implements ArmIO {
   @Override
   public void setPosition(Angle angle) {
     this.setPoint = Rotations.of(angle.in(Rotations));
+    var ff = feedforward.calculate(angle.in(Radians), 0.0);
 
     Logger.recordOutput("Arm/in_degrees", angle.in(Degrees));
     Logger.recordOutput("Arm/in_radians", angle.in(Radians));
     Logger.recordOutput("Arm/in_rotations", angle.in(Rotations));
-
-    double ff = feedforward.calculate(angle.in(Radians), 0.0);
+    Logger.recordOutput("Arm/FF", ff);
 
     // The setpoint is in rotations.
     closedLoopController.setReference(

@@ -22,7 +22,8 @@ import frc.robot.subsystems.drive.requests.ProfiledFieldCentricFacingAngle;
 import frc.robot.subsystems.drive.requests.SwerveSetpointGen;
 import frc.robot.subsystems.elevator.Elevator;
 import frc.robot.subsystems.elevator.ElevatorIO;
-import frc.robot.subsystems.elevator.ElevatorIOSIM;
+import frc.robot.subsystems.elevator.ElevatorIOREV;
+import frc.robot.subsystems.elevator.ElevatorIOSIMREV;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOLimelight;
@@ -67,7 +68,7 @@ public class RobotContainer {
 
         // elevator = new Elevator(new ElevatorIOCTRE()); // Disabled to prevent robot movement if
         // deployed to a real robot
-        elevator = new Elevator(new ElevatorIO() {});
+        elevator = new Elevator(new ElevatorIOREV() {});
         // arm = new Arm(new ArmIOCTRE()); // Disabled to prevent robot movement if deployed to a
         // real robot
         arm = new Arm(new ArmIOREV() {});
@@ -104,7 +105,7 @@ public class RobotContainer {
                     new Rotation3d(0, Math.toRadians(20), Math.toRadians(-90))),
                 drivetrain::getVisionParameters));
 
-        elevator = new Elevator(new ElevatorIOSIM());
+        elevator = new Elevator(new ElevatorIOSIMREV());
         arm = new Arm(new ArmIOREVSIM());
         break;
 
@@ -235,6 +236,11 @@ public class RobotContainer {
     joystick.x().onTrue(arm.L3());
     joystick.b().onTrue(arm.L2());
     joystick.a().onTrue(arm.L1());
+
+    joystick.povDown().onTrue(elevator.L1());
+    joystick.povLeft().onTrue(elevator.L2());
+    joystick.povRight().onTrue(elevator.L3());
+    joystick.povUp().onTrue(elevator.L4());
 
     // reset the field-centric heading on left bumper press
     // joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));

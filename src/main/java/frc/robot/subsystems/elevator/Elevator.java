@@ -81,7 +81,7 @@ public class Elevator extends SubsystemBase {
    *
    * @return The current angular distance
    */
-  @AutoLogOutput
+  // @AutoLogOutput
   public Distance getPosition() {
     return inputs.elevatorDistance;
   }
@@ -185,6 +185,16 @@ public class Elevator extends SubsystemBase {
   @AutoLogOutput
   private Distance targetDistance() {
     return currentMode.targetDistance;
+  }
+
+  /**
+   * Returns the current position of the arm.
+   *
+   * @return The current angular position
+   */
+  @AutoLogOutput
+  public Distance getPosition() {
+    return inputs.encoderPosition;
   }
 
   /**
