@@ -80,5 +80,33 @@ public class ElevatorIOSIMREV extends ElevatorIOREV {
         motorSimModel.getVelocityMetersPerSecond() / elevatorRadius.in(Meters);
 
     leaderSim.iterate(simulatedMotorRPM, RobotController.getBatteryVoltage(), 0.02);
+
+    //    leaderSim.setBusVoltage(RobotController.getBatteryVoltage());
+    //
+    //    // Update physics simulation
+    //    motorSimModel.setInput(leaderSim.getAppliedOutput() * RoboRioSim.getVInVoltage());
+    //    motorSimModel.update(0.02); // Simulate 20ms timestep (50Hz)
+    //
+    //    leaderSim.iterate(
+    //        motorSimModel.getVelocityMetersPerSecond(),
+    //        RoboRioSim.getVInVoltage(), // Simulated battery voltage, in Volts
+    //        0.02);
+    //
+    //    // Convert linear position/velocity to rotational units for based on encoder
+    //    Angle position =
+    //        Conversions.metersToRotations(
+    //            Meters.of(motorSimModel.getPositionMeters()), 1 / 12.0, elevatorRadius);
+    //
+    //    // Convert linear velocity to angular velocity based on encoder
+    //    AngularVelocity velocity =
+    //        Conversions.metersToRotationsVel(
+    //            MetersPerSecond.of(motorSimModel.getVelocityMetersPerSecond()),
+    //            1 / 12.0,
+    //            elevatorRadius);
+    //
+    //    // Update simulated motor readings converts through gear ratio
+    //    leaderSim.setPosition(position.times(GEAR_RATIO).in(Degrees));
+    //    leaderSim.setVelocity(velocity.times(GEAR_RATIO).in(DegreesPerSecond));
+    //    encoderSim.setPosition(motorSimModel.getPositionMeters());
   }
 }

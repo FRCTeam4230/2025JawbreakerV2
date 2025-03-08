@@ -3,7 +3,6 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 import com.pathplanner.lib.auto.AutoBuilder;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -165,13 +164,6 @@ public class RobotContainer {
                                 .getX())))); // Drive counterclockwise with negative X (left)
 
     // joystick.a().onTrue(Commands.runOnce(() -> drivetrain.resetPose(Pose2d.kZero)));
-    joystick
-        .b()
-        .whileTrue(
-            drivetrain.applyRequest(
-                () ->
-                    point.withModuleDirection(
-                        new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))));
 
     // Custom Swerve Request that use PathPlanner Setpoint Generator. Tuning NEEDED. Instructions
     // can be found here
@@ -182,16 +174,6 @@ public class RobotContainer {
                 drivetrain.getModuleStates(),
                 drivetrain::getRotation)
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
-    joystick
-        .x()
-        .whileTrue(
-            drivetrain.applyRequest(
-                () ->
-                    setpointGen
-                        .withVelocityX(MaxSpeed.times(-joystick.getLeftY()))
-                        .withVelocityY(MaxSpeed.times(-joystick.getLeftX()))
-                        .withRotationalRate(Constants.MaxAngularRate.times(-joystick.getRightX()))
-                        .withOperatorForwardDirection(drivetrain.getOperatorForwardDirection())));
 
     // Custom Swerve Request that use ProfiledFieldCentricFacingAngle. Allows you to face specific
     // direction while driving
@@ -204,23 +186,6 @@ public class RobotContainer {
             .withDriveRequestType(DriveRequestType.OpenLoopVoltage);
     // Set PID for ProfiledFieldCentricFacingAngle
     driveFacingAngle.HeadingController.setPID(7, 0, 0);
-    joystick
-        .y()
-        .whileTrue(
-            drivetrain
-                .runOnce(() -> driveFacingAngle.resetProfile(drivetrain.getRotation()))
-                .andThen(
-                    drivetrain.applyRequest(
-                        () ->
-                            driveFacingAngle
-                                .withVelocityX(
-                                    MaxSpeed.times(
-                                        -joystick
-                                            .getLeftY())) // Drive forward with negative Y (forward)
-                                .withVelocityY(MaxSpeed.times(-joystick.getLeftX()))
-                                .withTargetDirection(
-                                    new Rotation2d(
-                                        -joystick.getRightY(), -joystick.getRightX())))));
 
     // Run SysId routines when holding back/start and X/Y.
     // Note that each routine should be run exactly once in a single log.

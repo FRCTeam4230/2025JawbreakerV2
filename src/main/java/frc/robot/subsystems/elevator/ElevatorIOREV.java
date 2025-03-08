@@ -9,11 +9,10 @@ import com.revrobotics.spark.config.MAXMotionConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
-import frc.robot.utils.Conversions;
-import org.littletonrobotics.junction.Logger;
 
 public class ElevatorIOREV implements ElevatorIO {
   /** The gear ratio between the motor and the elevator mechanism */
@@ -24,7 +23,7 @@ public class ElevatorIOREV implements ElevatorIO {
    */
   protected final Distance elevatorRadius = Inches.of((1 + 7.0 / 8.0) / 2);
 
-  private Distance setpoint;
+  private Angle setpoint;
 
   /** Leader motor controller * */
   protected final SparkFlex leader =
@@ -98,7 +97,7 @@ public class ElevatorIOREV implements ElevatorIO {
         .positionMode(MAXMotionConfig.MAXMotionPositionMode.kMAXMotionTrapezoidal)
         .allowedClosedLoopError(0.01);
 
-    config.externalEncoder.inverted(true).countsPerRevolution(8192);
+    config.externalEncoder.countsPerRevolution(-8192);
 
     if (isFollower) {
       config.follow(leader, true);
@@ -126,7 +125,7 @@ public class ElevatorIOREV implements ElevatorIO {
     inputs.encoderPosition = Rotations.of(leader.getEncoder().getPosition());
     inputs.encoderVelocity = RotationsPerSecond.of(leaderEncoder.getVelocity());
 
-    inputs.dutyCycleEncoderPosition = Rotations.of(leaderExternalEncoder.get() / 8192.0);
+    inputs.dutyCycleEncoderPosition = Rotations.of(leaderExternalEncoder.get() / -8192.0);
 
     inputs.setpoint = setpoint;
 
@@ -139,23 +138,20 @@ public class ElevatorIOREV implements ElevatorIO {
       stop();
     }
 
-    //    if (inputs.upperLimit && inputs.leaderVelocity.magnitude() > 0) {
-    //      pidController.setReference(
-    //          inputs.leaderPosition.minus(Rotations.of(0.1)).in(Rotations),
-    //          SparkBase.ControlType.kPosition);
-    //    }
+    if (inputs.upperLimit && inputs.leaderVelocity.magnitude() > 0) {
+      pidController.setReference(
+          inputs.leaderPosition.minus(Rotations.of(0.1)).in(Rotations),
+          SparkBase.ControlType.kPosition);
+    }
 
     //
   }
 
   @Override
-  public void setDistance(Distance distance) {
-    setpoint = distance;
-    // var ff = feedforward.calculate(leaderEncoder.getVelocity(), 0.02);
-
-    var point = Conversions.metersToRotations(distance, GEAR_RATIO, elevatorRadius).magnitude();
-    Logger.recordOutput("Elevator/point", point);
-    pidController.setReference(point, SparkBase.ControlType.kPosition, ClosedLoopSlot.kSlot0);
+  public void setDistance(Angle distance) {
+    setpoint = distance.div(Math.PI);
+    pidController.setReference(
+        distance.in(Rotations) / Math.PI, SparkBase.ControlType.kPosition, ClosedLoopSlot.kSlot0);
 
     // feedforward.calculate(leaderEncoder.getVelocity()));
   }

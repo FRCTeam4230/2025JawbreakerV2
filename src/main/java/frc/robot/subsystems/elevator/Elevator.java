@@ -6,15 +6,19 @@
 
 package frc.robot.subsystems.elevator;
 
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.Volts;
+import static java.util.Optional.ofNullable;
 
-import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import java.util.Map;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -26,11 +30,11 @@ import org.littletonrobotics.junction.Logger;
  */
 public class Elevator extends SubsystemBase {
   // Hardware interface and inputs
-  private final ElevatorIO io;
+  private ElevatorIO io = null;
   private final ElevatorIOInputsAutoLogged inputs;
 
   // Current elevator distance mode
-  private ElevatorMode currentMode = ElevatorMode.INTAKE;
+  private ElevatorMode currentMode = ElevatorMode.STOP;
 
   // Alerts for motor connection status
   private final Alert leaderMotorAlert =
@@ -48,6 +52,7 @@ public class Elevator extends SubsystemBase {
   public Elevator(ElevatorIO io) {
     this.io = io;
     this.inputs = new ElevatorIOInputsAutoLogged();
+    SmartDashboard.putData(this);
   }
 
   @Override
@@ -67,7 +72,7 @@ public class Elevator extends SubsystemBase {
    *
    * @param distance The target angle distance
    */
-  private void setDistance(Distance distance) {
+  private void setDistance(Angle distance) {
     io.setDistance(distance);
   }
 
@@ -76,27 +81,18 @@ public class Elevator extends SubsystemBase {
     io.stop();
   }
 
-  /**
-   * Returns the current distance of the elevator.
-   *
-   * @return The current angular distance
-   */
-  @AutoLogOutput
-  public Distance getPosition() {
-    return inputs.elevatorDistance;
-  }
-
   /** Enumeration of available elevator distances with their corresponding target angles. */
-  private enum ElevatorMode {
-    STOP(Inches.of(0)), // Stop the elevator
-    INTAKE(Inches.of(0)), // Elevator tucked in
-    L1(Inches.of(12)), // Position for scoring in L1
-    L2(Inches.of(24)), // Position for scoring in L2
-    L3(Inches.of(36)), // Position for scoring in L3
-    L4(Inches.of(48)); // Position for scoring in L4
+  public enum ElevatorMode {
+    STOP(Rotations.of(0)), // Stop the elevator
+    INTAKE(Rotations.of(1.25)), // Elevator tucked in
+    PARKED(Rotations.of(0)),
+    L1(Rotations.of(0.2)), // Position for scoring in L1
+    L2(Rotations.of(1.25)), // Position for scoring in L2
+    L3(Rotations.of(3.5)), // Position for scoring in L3
+    L4(Rotations.of(14)); // Position for scoring in L4
 
-    private final Distance targetDistance;
-    private final Distance distanceTolerance;
+    private final Angle targetDistance;
+    private final Angle distanceTolerance;
 
     /**
      * Creates a new elevator mode with a custom distance tolerance.
@@ -104,13 +100,13 @@ public class Elevator extends SubsystemBase {
      * @param targetDistance The target distance for this mode
      * @param distanceTolerance The allowed tolerance from the target distance
      */
-    ElevatorMode(Distance targetDistance, Distance distanceTolerance) {
+    ElevatorMode(Angle targetDistance, Angle distanceTolerance) {
       this.targetDistance = targetDistance;
       this.distanceTolerance = distanceTolerance;
     }
 
-    ElevatorMode(Distance targetDistance) {
-      this(targetDistance, Inches.of(2)); // 2 inch default tolerance
+    ElevatorMode(Angle targetDistance) {
+      this(targetDistance, Rotations.of(0.02));
     }
   }
 
@@ -119,6 +115,7 @@ public class Elevator extends SubsystemBase {
    *
    * @return The current ElevatorPosition
    */
+  @AutoLogOutput
   public ElevatorMode getMode() {
     return currentMode;
   }
@@ -136,6 +133,10 @@ public class Elevator extends SubsystemBase {
     }
   }
 
+  public final boolean hasCoral() {
+    return inputs.beamBreakTriggered;
+  }
+
   // Command that runs the appropriate routine based on the current distance
   private final Command currentCommand =
       new SelectCommand<>(
@@ -144,6 +145,8 @@ public class Elevator extends SubsystemBase {
               Commands.runOnce(this::stop).withName("Stop Elevator"),
               ElevatorMode.INTAKE,
               createPositionCommand(ElevatorMode.INTAKE),
+              ElevatorMode.PARKED,
+              createPositionCommand(ElevatorMode.PARKED),
               ElevatorMode.L1,
               createPositionCommand(ElevatorMode.L1),
               ElevatorMode.L2,
@@ -162,29 +165,8 @@ public class Elevator extends SubsystemBase {
    * @return A command that implements the elevator movement
    */
   private Command createPositionCommand(ElevatorMode mode) {
-    return Commands.runOnce(() -> setDistance(mode.targetDistance))
+    return Commands.runOnce(() -> setDistance(mode.targetDistance), this)
         .withName("Move to " + mode.toString());
-  }
-
-  /**
-   * Checks if the elevator is at its target distance.
-   *
-   * @return true if at target distance, false otherwise
-   */
-  @AutoLogOutput
-  public boolean isAtTarget() {
-    if (currentMode == ElevatorMode.STOP) return true;
-    return getPosition().isNear(currentMode.targetDistance, currentMode.distanceTolerance);
-  }
-
-  /**
-   * Logs target angle for given mode.
-   *
-   * @return The target angle for the current mode
-   */
-  @AutoLogOutput
-  private Distance targetDistance() {
-    return currentMode.targetDistance;
   }
 
   /**
@@ -243,9 +225,52 @@ public class Elevator extends SubsystemBase {
   }
 
   /**
+   * @return Command to park the elevator
+   */
+  public final Command park() {
+    return setPositionCommand(ElevatorMode.PARKED);
+  }
+
+  /**
    * @return Command to stop the elevator
    */
   public final Command stopCommand() {
     return setPositionCommand(ElevatorMode.STOP);
+  }
+
+  private SysIdRoutine elevatorSysIdRoutine =
+      new SysIdRoutine(
+          new SysIdRoutine.Config(
+              null,
+              Volts.of(4),
+              null,
+              state -> Logger.recordOutput("Elevator/SysIdElevator_State", state.toString())),
+          new SysIdRoutine.Mechanism((voltage) -> io.setVoltage(voltage), null, this));
+
+  public final Command runQStaticElevatorSysId(SysIdRoutine.Direction direction) {
+    return elevatorSysIdRoutine.quasistatic(direction);
+  }
+
+  public final Command runDynamicElevatorSysId(SysIdRoutine.Direction direction) {
+    return elevatorSysIdRoutine.dynamic(direction);
+  }
+
+  /**
+   * Checks if the elevator is at its target height.
+   *
+   * @return true if at target height, false otherwise
+   */
+  @AutoLogOutput
+  public boolean isAtTarget() {
+    return ofNullable(inputs.encoderPosition)
+        .map(val -> val.isNear(currentMode.targetDistance, currentMode.distanceTolerance))
+        .orElse(false);
+  }
+
+  @AutoLogOutput
+  public boolean isAtTargetPos() {
+    return ofNullable(inputs.encoderPosition)
+        .map(val -> val.isNear(currentMode.targetDistance, currentMode.distanceTolerance))
+        .orElse(false);
   }
 }
